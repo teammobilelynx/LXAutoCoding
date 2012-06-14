@@ -1,1 +1,8 @@
 ---
+
+A simple implementation of a class that automatically conforms its subclasses to the NSCoding protocol, that supports ARC.
+
+TODO:
+* a test suite
+* a complete support to C primitive types
+  

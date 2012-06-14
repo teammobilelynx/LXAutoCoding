@@ -1,6 +1,6 @@
 ---
 
-A simple implementation of a class that automatically conforms its subclasses to the NSCoding protocol, that supports ARC.
+A simple implementation of a class that automatically conforms its subclasses to the NSCoding protocol, and that supports ARC.
 
 TODO:
 * a test suite

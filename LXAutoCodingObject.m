@@ -17,20 +17,13 @@
 {
     self = [super init];
     if (self)
-    {
-        dirty = YES;
-        
+    {        
         NSArray *propsKeys = [self.dictionaryRepresentation allKeys];
         for (NSString *propKey in propsKeys)
-        {
-            NSString *capitalizedPropKey = [propKey stringByReplacingCharactersInRange:NSMakeRange(0,1) withString:[[propKey substringToIndex:1] uppercaseString]];
-            
-            NSObject *decodedObject = [aDecoder decodeObjectForKey:propKey];
-            SEL propertySetter = NSSelectorFromString([NSString stringWithFormat:@"set%@:", capitalizedPropKey]);
-            
-            [self performSelector:propertySetter withObject:decodedObject];
-            
+        {   
             [self addObserver:self forKeyPath:propKey options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld) context:NULL];
+
+            [self setValue:[aDecoder decodeObjectForKey:propKey] forKey:propKey];    
         }
         
     }
@@ -42,6 +35,7 @@
     if ([aCoder isKindOfClass:[NSKeyedArchiver class]]) 
     {
         NSArray *propsKeys = [self.dictionaryRepresentation allKeys];
+        
         for (NSString *propKey in propsKeys)
         {
             [aCoder encodeObject:[self.dictionaryRepresentation objectForKey:propKey] forKey:propKey];
@@ -57,7 +51,7 @@
 #pragma mark - Getters
 -(NSDictionary *)dictionaryRepresentation 
 {
-    if (dirty)
+    if (dirty||!_dictionaryRepresentation)
     {
         NSMutableDictionary *propertyDictionary = [NSMutableDictionary dictionary];
         unsigned int outCount, i;
@@ -71,7 +65,11 @@
         }
         free(properties);
         
-        _dictionaryRepresentation = [NSDictionary dictionaryWithDictionary:propertyDictionary];
+#if !__has_feature(objc_arc)
+        [_dictionaryRepresentation release];
+#endif
+        _dictionaryRepresentation = [[NSDictionary alloc] initWithDictionary:propertyDictionary];
+        dirty = NO;
     }
     
     return _dictionaryRepresentation;
@@ -207,6 +205,7 @@
     }
     
 #if !__has_feature(objc_arc)
+    [_dictionaryRepresentation release]; _dictionaryRepresentation = nil;
     [super dealloc];
 #endif
 }
